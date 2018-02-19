@@ -222,22 +222,21 @@ public class LaunchMaster
      * Creates a new LaunchMaster-Instance that searches the given package and its subpackages for programs
      * @param title The title of the LaunchMaster window
      * @param topLevelPackageName The full package name of the top level package of the search tree
+     * @deprecated Because searching for classes is too buggy (does not work on some IDEs or compiled)
      * @return The LaunchMaster instance
      */
+    @Deprecated
     public static LaunchMaster create(String title, String topLevelPackageName) throws Exception{
         return create(title, topLevelPackageName, Thread.currentThread().getContextClassLoader());
     }
     
     /**
-     * Creates a new LaunchMaster-Instance that searches the current package and its subpackages for programs
+     * Creates a new LaunchMaster-Instance that does not search for classes.
      * @param title The title of the LaunchMaster window
-     * @deprecated This method uses the top package of the LaunchMaster class as root. Since this Library is intended to be used as
-     * an API and not modified, there would be no classes in this package anyways 
      * @return The LaunchMaster instance
      */
-    @Deprecated
-    public static LaunchMaster create(String title) throws Exception{
-        return LaunchMaster.create(title,null);
+    public static LaunchMaster create(String title){
+        return new LaunchMaster(title);
     }
     
     /**
@@ -245,8 +244,10 @@ public class LaunchMaster
      * @param title The title of the LaunchMaster window
      * @param topLevelPackageName The full package name of the top level package of the search tree
      * @param customcl The classloader to use for the search. The default one (for other methods) is Thread.currentThread().getContextClassLoader();
+     * @deprecated Because searching for classes is too buggy (does not work on some IDEs or compiled)
      * @return The LaunchMaster instance
      */
+    @Deprecated
     public static LaunchMaster create(String title, String topLevelPackageName, ClassLoader customcl) throws Exception{
     	if(title == null) title = "Launch";
         if(topLevelPackageName == null){

@@ -12,5 +12,10 @@ Subprograms are marked with annotations. A subprogram must fulfill the following
   * `defStr=<String>` Default value for Strings. Has no effect on any other type than String.
   * `min=<double>` Minimum value for numeric types and String. For ints, def is rounded, for Strings, this is the minumum amount of characters in this String.
   * `max=<double>` Maximum value for numeric types and String. For ints, def is rounded, for Strings, this is the maximum amount of characters in this String.
-4. Create a new LaunchMaster instance with `LaunchMaster.create(title, rootPackageName);` LaunchMaster will then scan all classes in this Package and its subpackages and add all classes that fulfill the conditions.
-5. If you have a class that is not in one of the specified packages, vou can add it manually by calling `lauchMasterInstance.addProgram(MyProgramClass.class);`
+4. Create a new LaunchMaster instance with `LaunchMaster.create(title, rootPackageName);` 
+5. If you have a subprogram, you add it by calling `lauchMasterInstance.addProgram(MyProgramClass.class);`
+
+## Troubleshooting
+* ClassNotFoundException on `LaunchMaster.create()`  
+	The `LaunchMaster.create(String,String)` and `LaunchMaster.create(String,String,ClassLoader)` methods are deprecated.
+	Don't use them. You will have to add your programs manually for now.

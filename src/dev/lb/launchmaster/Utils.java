@@ -124,10 +124,12 @@ public final class Utils
    * 
    * @param pckgname
    *            the package name to search
+   * @deprecated Doesn't really work on all IDEs / Compiled
    * @return a list of classes that exist within that package
    * @throws ClassNotFoundException
    *             if something went wrong
    */
+  @Deprecated
   public static List<Class<?>> getClassesForPackage(String pckgname, ClassLoader cl) throws ClassNotFoundException {
       // This will hold a list of directories matching the pckgname. There may be more than one if a package is split over multiple jars/paths
       ArrayList<File> directories = new ArrayList<File>();
