@@ -204,7 +204,7 @@ public class LaunchMaster
         return coms;
     }
 
-    public void addProgram(SubProgram sp){
+    protected void addProgram(SubProgram sp){
         //Alle verÃ¤derungen an der Component-Struktur müssen anscheined auf den EDT
         SwingUtilities.invokeLater(() -> {
                 programme.put(sp, createCard(sp));
