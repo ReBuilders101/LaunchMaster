@@ -6,9 +6,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation für main-Parameter
+ * Annotation for paramters of the main method
+ * <br>
+ * Fields: <br>
+ * desc - A description of the paramter <br>
+ * def - A numeric default value <br>
+ * defStr - A String default value <br>
+ * min - A numeric minimum, or the Strings minimal length <br>
+ * max - A numeric maximum, or the Strings maximal length <br>
  *
- * @author Lars Bündgen
+ * @author Lars B�ndgen
  * @version 1.0
  */
 

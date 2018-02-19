@@ -8,14 +8,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 
 /**
- * Implementierende Klassen sind eigenständige Programme, die Informationen über
- * ihre Aufrufparameter für ein Launcher-Programm bereitstellen
- *
- * @author Lars Bündgen
+ * @author Lars B�ndgen
  * @version 1.0
  */
-public final class SubProgram
-{
+final class SubProgram {
     private Consumer<Object[]> mainmethod;
     private String name;
     private String description;
@@ -28,28 +24,18 @@ public final class SubProgram
         this.params = params;
     }
     
-    /**
-     * Die Main-Methode des Unterprogrammes, die zum Starten aufgerufen werden soll.
-     * Die Methode muss null als Parameter akzeptieren.
-     */
     public void startProgram(Object...args){
         mainmethod.accept(args);
     }
-    /**
-     * Eine Liste von möglichen Startparametern
-     */
+
     public List<Parameter> getLaunchParameters(){
         return params;
     }
-    /**
-     * Eine Beschreibung des Programmes, kann in HTML formatiert sein
-     */
+
     public String getDescription(){
         return description;
     }
-    /**
-     * Der Anzeigename des Programmes
-     */
+
     public String getName(){
         return name;
     }
@@ -80,7 +66,7 @@ public final class SubProgram
                     break;
                 }
             }
-            final Method main = main1; //Sonst kann diese Variable nicht in der Lambda-Expression unten verwendet werden
+            final Method main = main1; //That's reqiured for the lambda
             
             if(main == null){
                 throw new Exception("Found no static Method with the @MainMethod annotation present");

@@ -28,10 +28,10 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 /**
- * Ein Launcher für Unterprogramme, die SubProgram implementieren;
+ * A Launcher for subprograms with GUI and Paramters
  *
- * @author Lars Bündgen
- * @version 2.4
+ * @author Lars B�ndgen
+ * @version 2.6
  */
 public class LaunchMaster
 {
@@ -52,23 +52,23 @@ public class LaunchMaster
         //Content Pane
         JPanel cp = new JPanel();
         //Col1
-        JLabel selectPrg = Utils.setSize(new JLabel("Wählen sie ein Programm"), 210, 15);
+        JLabel selectPrg = Utils.setSize(new JLabel("Select a program"), 210, 15);
         list = Utils.setSize(new JList<SubProgram>(new DefaultListModel<SubProgram>()), 210, 420);
         list.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Color.GRAY), new EmptyBorder(5,5,5,5)));
         list.setMinimumSize(new Dimension(50,50));
         JButton start = Utils.setSize(new JButton("Starten"), 210, 30);
         //Col2
-        JLabel prgDesc = Utils.setSize(new JLabel("Programmbeschreibung"), 250, 15);
-        desc = Utils.setSize(new JLabel(widthTag + "Kein Programm gewählt"), 250, 420);
+        JLabel prgDesc = Utils.setSize(new JLabel("Program description"), 250, 15);
+        desc = Utils.setSize(new JLabel(widthTag + "No program selected"), 250, 420);
         desc.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Color.GRAY), new EmptyBorder(5,5,5,5)));
-        JButton exit = Utils.setSize(new JButton("LaunchMaster Beenden"), 250, 30);
+        JButton exit = Utils.setSize(new JButton("Quit LaunchMaster"), 250, 30);
         //Col3
-        JLabel startOpt = Utils.setSize(new JLabel("Startoptionen"), 480, 15);
+        JLabel startOpt = Utils.setSize(new JLabel("Launch options"), 480, 15);
         optPanel = new JPanel();
         optPanel.setLayout(cards);
         optPanel.add(new JLabel("No Program selected"), "%NULL%"); //Bitte kein Programm "%NULL%" nennen!!!
         JScrollPane jsp = Utils.setSize(new JScrollPane(optPanel), 480, 420);
-        JButton lol = Utils.setSize(new JButton("Werte zurücksetzen"), 480, 30);
+        JButton lol = Utils.setSize(new JButton("Reset values"), 480, 30);
 
         for(JComponent c :  new JComponent[]{selectPrg, prgDesc, startOpt, list, desc, jsp, start, exit, lol}){
             cp.add(c);
@@ -80,7 +80,7 @@ public class LaunchMaster
         start.addActionListener((k) -> {
                 SubProgram current = list.getSelectedValue();
                 if(current == null){
-                    JOptionPane.showMessageDialog(frame, "Sie müssen zuerst ein Programm auswählen", "Programmstart", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "You have to select a program", "Launch", JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
                 Object[] args = createArguments();
@@ -117,8 +117,8 @@ public class LaunchMaster
                 int min = Integer.parseInt(jtf.getName().split(";")[0]);
                 int max = Integer.parseInt(jtf.getName().split(";")[1]);
                 if(jtf.getText().length() < min || jtf.getText().length() > max){
-                    JOptionPane.showMessageDialog(frame, "<html>Der Text in '" + par.getDescription() + "' entspricht nicht den Vorgaben: <br> Minimale Länge: " + min +
-                        "<br> Maximale Länge: " + max, "Textlänge", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "<html>The text in '" + par.getDescription() + "' does not fulfill these conditions: <br> Minimal length: " + min +
+                        "<br> Maximal length: " + max, "Text length", JOptionPane.INFORMATION_MESSAGE);
                     return null;   
                 }
                 args[i] = jtf.getText();
@@ -133,7 +133,7 @@ public class LaunchMaster
     private void updateUI(){
         SubProgram current = list.getSelectedValue();
         if(current == null){
-            desc.setText(widthTag + "Kein Programm gewählt");
+            desc.setText(widthTag + "No program selected");
             cards.show(optPanel, "%NULL%");
             return;
         }else{
@@ -145,7 +145,7 @@ public class LaunchMaster
 
     private void restoreDefaults(SubProgram current){
         if(current == null){
-            JOptionPane.showMessageDialog(frame, "Sie müssen zuerst ein Programm auswählen", "Zurücksetzen", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "You have to select a program", "Reset", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         for(int i = 0; i < current.getLaunchParameters().size(); i++){
@@ -172,7 +172,7 @@ public class LaunchMaster
 
             JComponent com = new JLabel("Oops"); //Error
             if(p.getParamType() == Parameter.Type.BOOLEAN){
-                com = Utils.setSize(new JCheckBox("Diesen Parameter hinzufügen"), 200, 20);
+                com = Utils.setSize(new JCheckBox("Add this parameter"), 200, 20);
             }else if(p.getParamType() == Parameter.Type.INT){
                 int min = Double.isNaN(p.getMinimumValue()) ? Integer.MIN_VALUE : (int) p.getMinimumValue();
                 int max = Double.isNaN(p.getMaximumValue()) ? Integer.MAX_VALUE : (int) p.getMaximumValue();
@@ -205,7 +205,7 @@ public class LaunchMaster
     }
 
     public void addProgram(SubProgram sp){
-        //Alle veräderungen an der Component-Struktur müssen anscheined auf den EDT
+        //Alle veräderungen an der Component-Struktur m�ssen anscheined auf den EDT
         SwingUtilities.invokeLater(() -> {
                 programme.put(sp, createCard(sp));
                 ((DefaultListModel<SubProgram>) list.getModel()).addElement(sp);
@@ -219,26 +219,47 @@ public class LaunchMaster
     }
     
     /**
-     * Erstellt einen neuen LaunchMaster für das angegebene Paket
+     * Creates a new LaunchMaster-Instance that searches the given package and its subpackages for programs
+     * @param title The title of the LaunchMaster window
+     * @param topLevelPackageName The full package name of the top level package of the search tree
+     * @return The LaunchMaster instance
      */
     public static LaunchMaster create(String title, String topLevelPackageName) throws Exception{
-        if(title == null) title = "Launch";
+        return create(title, topLevelPackageName, Thread.currentThread().getContextClassLoader());
+    }
+    
+    /**
+     * Creates a new LaunchMaster-Instance that searches the current package and its subpackages for programs
+     * @param title The title of the LaunchMaster window
+     * @deprecated This method uses the top package of the LaunchMaster class as root. Since this Library is intended to be used as
+     * an API and not modified, there would be no classes in this package anyways 
+     * @return The LaunchMaster instance
+     */
+    @Deprecated
+    public static LaunchMaster create(String title) throws Exception{
+        return LaunchMaster.create(title,null);
+    }
+    
+    /**
+     * Creates a new LaunchMaster-Instance that searches the given package and its subpackages for programs
+     * @param title The title of the LaunchMaster window
+     * @param topLevelPackageName The full package name of the top level package of the search tree
+     * @param customcl The classloader to use for the search. The default one (for other methods) is Thread.currentThread().getContextClassLoader();
+     * @return The LaunchMaster instance
+     */
+    public static LaunchMaster create(String title, String topLevelPackageName, ClassLoader customcl) throws Exception{
+    	if(title == null) title = "Launch";
         if(topLevelPackageName == null){
-            topLevelPackageName = LaunchMaster.class.getCanonicalName();
-            //System.out.println(topLevelPackageName);
+            topLevelPackageName = LaunchMaster.class.getPackage().getName();
             if(topLevelPackageName.contains(".")){
-                topLevelPackageName = topLevelPackageName.substring(0, topLevelPackageName.indexOf('.'));
+            	topLevelPackageName = topLevelPackageName.substring(0, topLevelPackageName.indexOf('.'));
             }
         }
         LaunchMaster lm = new LaunchMaster(title);
-        List<Class<?>> classes = Utils.getClassesForPackage(topLevelPackageName);
+        List<Class<?>> classes = Utils.getClassesForPackage(topLevelPackageName, customcl);
         for(Class<?> clazz : classes){
             if(clazz.isAnnotationPresent(Program.class)) lm.addProgram(clazz);
         }
         return lm;
-    }
-    
-    public static LaunchMaster create(String title) throws Exception{
-        return LaunchMaster.create(title,null);
     }
 }

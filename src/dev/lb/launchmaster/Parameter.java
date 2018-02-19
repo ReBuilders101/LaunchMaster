@@ -1,24 +1,18 @@
 package dev.lb.launchmaster;
 
 /**
- * Beschreibt einen Startparamter für eine Main-Methode
- *
- * @author Lars Bündgen
+ * 
+ * @author Lars B�ndgen
  * @version 1.1
  */
 
-public class Parameter{
+class Parameter{
     private Type type;
     private String desc;
     private double min;
     private double max;
     private Object def;
 
-    /**
-     * Erstellt einen neuen Parameter
-     * @param code Der Parameter (z.B. -radius oder -hoehe)
-     * @param desc Eine Parameterbeschreibung
-     */
     public Parameter(String desc, Type type, double min, double max, Object def){
         this.type = type;
         this.desc = desc;
@@ -27,18 +21,10 @@ public class Parameter{
         this.def = def;
     }
 
-    /**
-     * Gibt den Parameter-Typ zurück
-     * @return Den Parametertyp
-     */
     public Type getParamType(){
         return type;
     }
 
-    /**
-     * Gibt eine Beschreibung für diesen Parameter an
-     * @return Die Parameterbeschreibung
-     */
     public String getDescription(){
         return desc;
     }

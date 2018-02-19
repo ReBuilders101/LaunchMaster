@@ -15,10 +15,9 @@ import javax.swing.Spring;
 import java.awt.Component;
 
 /**
- * Methoden für häufig wiederkehrende Aufgaben, hauptsächlich im Bereich Swing-komponenten.
- * Enthält Methoden aus dem Internet.
+ * Methods for various tasks. Most are copied from the internet.
  *
- * @author Lars Bündgen, andere
+ * @author Lars B�ndgen, others
  * @version 1.0
  */
 public final class Utils
@@ -104,7 +103,6 @@ public final class Utils
     }
 
     
-    /* Used by makeCompactGrid. */
     /**
      *  Aus SpringUtilites.java kopiert
      */
@@ -130,18 +128,13 @@ public final class Utils
    * @throws ClassNotFoundException
    *             if something went wrong
    */
-  public static List<Class<?>> getClassesForPackage(String pckgname) throws ClassNotFoundException {
+  public static List<Class<?>> getClassesForPackage(String pckgname, ClassLoader cl) throws ClassNotFoundException {
       // This will hold a list of directories matching the pckgname. There may be more than one if a package is split over multiple jars/paths
       ArrayList<File> directories = new ArrayList<File>();
       String packageToPath = pckgname.replace('.', '/');
       try {
-          ClassLoader cld = Thread.currentThread().getContextClassLoader();
-          if (cld == null) {
-              throw new ClassNotFoundException("Can't get class loader.");
-          }
-
           // Ask for all resources for the packageToPath
-          Enumeration<URL> resources = cld.getResources(packageToPath);
+          Enumeration<URL> resources = cl.getResources(packageToPath);
           while (resources.hasMoreElements()) {
               directories.add(new File(URLDecoder.decode(resources.nextElement().getPath(), "UTF-8")));
           }

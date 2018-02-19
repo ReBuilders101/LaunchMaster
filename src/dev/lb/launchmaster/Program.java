@@ -5,14 +5,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation für Unterprogramme. Werden zur Laufzeit per Reflection zu SubProgram-Objekten konvertiert
+ * Annotation for Subprograms. 
  * <br>
- * Werte: <br>
- * desc - Beschreibung des Programmes - default: 'Keine Beschreibung'
- * value - Der Name des Programmes 
+ * Fields: <br>
+ * desc - Description of the program
+ * value - Name of the program
  * 
- * @author Lars Bündgen
- * @version 1.0
+ * @author Lars B�ndgen
+ * @version 1.2
  */
 @Retention(RUNTIME)
 @Target(TYPE)
