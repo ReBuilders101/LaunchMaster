@@ -49,6 +49,7 @@ public class LaunchMaster
         //LAYOUT
         //Fenster
         frame = new JFrame("LaunchMaster - " + titel);
+        frame.setMinimumSize(new Dimension(500, 200));
         //Content Pane
         JPanel cp = new JPanel();
         //Col1
