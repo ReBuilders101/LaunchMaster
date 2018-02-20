@@ -4,6 +4,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.lang.annotation.ElementType.PARAMETER;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import dev.lb.launchmaster.Binding.BindingType;
+import dev.lb.launchmaster.Binding.BindingWarning;
 
 /**
  * Annotation for paramters of the main method
@@ -28,4 +30,6 @@ public @interface Param
     String defStr() default "";
     double min() default Double.NaN;
     double max() default Double.NaN;
+    String[] combo() default {};
+    Binding[] bind() default @Binding(param="",bind=BindingType.NULL,warn=BindingWarning.NULL);
 }

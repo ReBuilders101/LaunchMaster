@@ -9,10 +9,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.BoxLayout;
 import java.awt.Dimension;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
@@ -24,8 +22,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.JComponent;
 import java.util.List;
 import java.util.ArrayList;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 
 /**
  * A Launcher for subprograms with GUI and Paramters
@@ -69,9 +65,9 @@ public class LaunchMaster
         optPanel.setLayout(cards);
         optPanel.add(new JLabel("No Program selected"), "%NULL%"); //Bitte kein Programm "%NULL%" nennen!!!
         JScrollPane jsp = Utils.setSize(new JScrollPane(optPanel), 480, 420);
-        JButton lol = Utils.setSize(new JButton("Reset values"), 480, 30);
+        JButton reset = Utils.setSize(new JButton("Reset values"), 480, 30);
 
-        for(JComponent c :  new JComponent[]{selectPrg, prgDesc, startOpt, list, desc, jsp, start, exit, lol}){
+        for(JComponent c :  new JComponent[]{selectPrg, prgDesc, startOpt, list, desc, jsp, start, exit, reset}){
             cp.add(c);
         };
         Utils.makeCompactGrid(cp, 3, 3, 10, 10, 10, 10);
@@ -84,14 +80,24 @@ public class LaunchMaster
                     JOptionPane.showMessageDialog(frame, "You have to select a program", "Launch", JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
-                Object[] args = createArguments();
-                if(args == null) return;
-                Thread sub = new Thread(() -> current.startProgram(args));
-                sub.start();
+                Object[] args;
+				try {
+					args = createArguments();
+				} catch (ValueOutOfRangeException e) {
+					JOptionPane.showMessageDialog(frame, e.getMessage(), "Range", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				try{
+					Thread sub = new Thread(() -> current.startProgram(args));
+	                sub.start();
+				}catch(Exception e){
+					JOptionPane.showMessageDialog(frame, "Error while launching", "Error", JOptionPane.ERROR_MESSAGE);
+					e.printStackTrace();
+				}
                 updateUI();
             });
         list.addListSelectionListener((l) -> updateUI());
-        lol.addActionListener((k) -> restoreDefaults(list.getSelectedValue()));
+        reset.addActionListener((k) -> restoreDefaults(list.getSelectedValue()));
         
         
         frame.add(cp);
@@ -100,33 +106,12 @@ public class LaunchMaster
         frame.setVisible(true);
     }
 
-    private Object[] createArguments(){
+    private Object[] createArguments() throws ValueOutOfRangeException{
         SubProgram current = list.getSelectedValue();
         if(current == null) return new Object[]{};
         Object[] args = new Object[current.getLaunchParameters().size()];
         for(int i = 0; i < current.getLaunchParameters().size(); i++){
-            JComponent com = programme.get(current).get(i);
-            Parameter par = current.getLaunchParameters().get(i);
-            if(par.getParamType() == Parameter.Type.BOOLEAN && com instanceof JCheckBox){
-                args[i] = ((JCheckBox) com).isSelected();
-            }else if(par.getParamType() == Parameter.Type.FLOAT && com instanceof JSpinner){
-                args[i] = (float) ((JSpinner) com).getValue();
-            }else if(par.getParamType() == Parameter.Type.INT && com instanceof JSpinner){
-                args[i] = (int) ((JSpinner) com).getValue();
-            }else if(par.getParamType() == Parameter.Type.STRING && com instanceof JTextField){
-                JTextField jtf = (JTextField) com;
-                int min = Integer.parseInt(jtf.getName().split(";")[0]);
-                int max = Integer.parseInt(jtf.getName().split(";")[1]);
-                if(jtf.getText().length() < min || jtf.getText().length() > max){
-                    JOptionPane.showMessageDialog(frame, "<html>The text in '" + par.getDescription() + "' does not fulfill these conditions: <br> Minimal length: " + min +
-                        "<br> Maximal length: " + max, "Text length", JOptionPane.INFORMATION_MESSAGE);
-                    return null;   
-                }
-                args[i] = jtf.getText();
-            }else{
-                System.err.println("No match");
-                args[i] = null;
-            }
+            args[i] = current.getLaunchParameters().get(i).readValue();
         }
         return args;
     }
@@ -145,20 +130,7 @@ public class LaunchMaster
     }
 
     private void restoreDefaults(SubProgram current){
-        if(current == null){
-            JOptionPane.showMessageDialog(frame, "You have to select a program", "Reset", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        for(int i = 0; i < current.getLaunchParameters().size(); i++){
-            JComponent com = programme.get(current).get(i);
-            Parameter par = current.getLaunchParameters().get(i);
-            switch(par.getParamType()){
-                case BOOLEAN: ((JCheckBox) com).setSelected((boolean) par.getDefaultValue()); break;
-                case INT: ((JSpinner) com).setValue((int) (double) par.getDefaultValue()); break;
-                case FLOAT: ((JSpinner) com).setValue((float)  (double) par.getDefaultValue()); break;
-                case STRING: ((JTextField) com).setText((String) par.getDefaultValue()); break;
-            }
-        }
+        
     }
     
     private List<JComponent> createCard(SubProgram sp){
@@ -166,37 +138,7 @@ public class LaunchMaster
         List<JComponent> coms = new ArrayList<>();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         for(Parameter p : sp.getLaunchParameters()){
-            JPanel con = new JPanel();
-            JLabel name = Utils.setSize(new JLabel(p.getDescription()), 240, 20);
-            name.setToolTipText(p.getDescription());
-            con.add(name);
-
-            JComponent com = new JLabel("Oops"); //Error
-            if(p.getParamType() == Parameter.Type.BOOLEAN){
-                com = Utils.setSize(new JCheckBox("Add this parameter"), 200, 20);
-            }else if(p.getParamType() == Parameter.Type.INT){
-                int min = Double.isNaN(p.getMinimumValue()) ? Integer.MIN_VALUE : (int) p.getMinimumValue();
-                int max = Double.isNaN(p.getMaximumValue()) ? Integer.MAX_VALUE : (int) p.getMaximumValue();
-                com = Utils.setSize(new JSpinner(new SpinnerNumberModel(min, min ,max, 1)), 200, 20);
-            }else if(p.getParamType() == Parameter.Type.FLOAT){
-                double min = Double.isNaN(p.getMinimumValue()) ? Double.MIN_VALUE : (double) p.getMinimumValue();
-                double max = Double.isNaN(p.getMaximumValue()) ? Double.MAX_VALUE : (double) p.getMaximumValue();
-                com = Utils.setSize(new JSpinner(new SpinnerNumberModel(min, min ,max, 0.1)), 200, 20);
-            }else if(p.getParamType() == Parameter.Type.STRING){
-                com = Utils.setSize(new JTextField(), 200, 20);
-                int min = 0;
-                int max = 0;
-                if(p.getMinimumValue() != Double.NaN && p.getMinimumValue() > 0){
-                    min = (int) p.getMinimumValue();
-                }
-                if(p.getMaximumValue() != Double.NaN && p.getMaximumValue() >= min){
-                    max = (int) p.getMaximumValue();
-                }
-                com.setName(min + ";" + max); //Wird später noch schöner gemacht
-            }
-            con.setMaximumSize(new Dimension(Short.MAX_VALUE, 20));
-            con.add(com);
-            coms.add(com);
+            JComponent con = p.createComponent(new Dimension(240, 20), new Dimension(200, 20));
             card.add(con);
         }
         card.setMinimumSize(new Dimension(450,coms.size()*20));

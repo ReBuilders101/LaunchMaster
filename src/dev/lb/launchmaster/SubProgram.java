@@ -3,6 +3,7 @@ package dev.lb.launchmaster;
 import java.util.function.Consumer;
 import java.util.List;
 import java.util.Arrays;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
@@ -50,9 +51,10 @@ final class SubProgram {
     public static SubProgram create(String name, String description, Consumer<Object[]> mainmethod, List<Parameter> params){
         return new SubProgram(name, description, mainmethod, params);
     }
-    public static SubProgram create(Class<?> clazz) throws Exception{
+    
+    public static SubProgram create(Class<?> clazz) throws AnnotationParsingException{
         if(!clazz.isAnnotationPresent(Program.class)){
-            throw new Exception("The class " + clazz.getName() + " does not implement the @Program annotation and can't be used");
+            throw new AnnotationParsingException("The class " + clazz.getName() + " does not implement the @Program annotation and can't be used", clazz, null);
         }else{
             Program p = clazz.getDeclaredAnnotation(Program.class);
             String desc = p.desc();
@@ -69,7 +71,7 @@ final class SubProgram {
             final Method main = main1; //That's reqiured for the lambda
             
             if(main == null){
-                throw new Exception("Found no static Method with the @MainMethod annotation present");
+                throw new AnnotationParsingException("Found no static Method with the @MainMethod annotation present", clazz, null);
             }
             Annotation[][] paramAnnotations = main.getParameterAnnotations();
             Parameter[] paramObjects = new Parameter[main.getParameterCount()];
@@ -81,35 +83,16 @@ final class SubProgram {
                 for(Annotation a : paramAnnotations[i]){
                     if(a instanceof Param) param = (Param) a;
                 }
-                if(param == null) throw new Exception("Argument " + i + " is missing a @Param annotation");
-                
-                Object defVal = null;
-                Parameter.Type type = null;
-                if(typeClass == int.class){
-                    type = Parameter.Type.INT;
-                    defVal = param.def();
-                }else if(typeClass == float.class || typeClass == double.class){
-                    type = Parameter.Type.FLOAT;
-                    defVal = param.def();
-                }else if(typeClass == String.class){
-                    type = Parameter.Type.STRING;
-                    defVal = param.defStr();
-                }else if(typeClass == boolean.class){
-                    type = Parameter.Type.BOOLEAN;
-                    defVal = param.def() != 0;
-                }else{
-                    throw new Exception("All arguments must be double, float, boolean, String or int, but argument " + i + " was: " + typeClass.getName());
-                }
-                
-                paramObjects[i] = new Parameter(param.desc(), type, param.min(), param.max(), defVal);
+                if(param == null) throw new AnnotationParsingException("Argument " + i + " is missing a @Param annotation", clazz, null);
+                paramObjects[i] = Parameter.create(param, typeClass, clazz);
             }
             return SubProgram.create(name, desc, (a) -> {
-                try{
-                    main.invoke(null, a);
-                }catch(Exception e){
-                    throw new RuntimeException(e);
-                }
-            }, paramObjects);
+            	try {
+					main.invoke(null, a);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
+				}
+			}, paramObjects);
         }
     }
 }
