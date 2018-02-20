@@ -8,11 +8,15 @@ import java.awt.image.BufferedImage;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.DefaultFormatter;
 
 /**
  * 
@@ -89,13 +93,13 @@ class Parameter{
     	return con;
     }
     
-    private void createControl(){
+    private void createControl(SubProgram updateHandler){
     	try{
     		switch (getParamType()) {
     			case BOOLEAN: component = new JCheckBox("Add this paramter");
     				break;
     			case BYTE: component = new JSpinner(new SpinnerNumberModel((byte) (double) def, Double.isNaN(min) ? Byte.MIN_VALUE : (byte) min,
-    				Double.isNaN(max) ? Byte.MAX_VALUE : (byte) max, 1)); 	
+    				Double.isNaN(max) ? Byte.MAX_VALUE : (byte) max, 1));
     				break;
     			case DOUBLE: component = new JSpinner(new SpinnerNumberModel((double) def, Double.isNaN(min) ?	Double.MIN_VALUE : (double) min,
     				Double.isNaN(max) ? Double.MAX_VALUE : (double) max, 1));
@@ -124,6 +128,37 @@ class Parameter{
     			default: component = new JLabel("No component associated with this type");
     				break;
     		}
+    		if(component instanceof JCheckBox){
+    			((JCheckBox) component).addActionListener((e) -> updateHandler.updateUI());
+    		}else if(component instanceof JSpinner){
+    			((DefaultFormatter) ((JFormattedTextField) ((JSpinner) component).getEditor()
+    				.getComponent(0)).getFormatter()).setCommitsOnValidEdit(true); //Thats a lot of casts
+				((JSpinner) component).addChangeListener((e) -> updateHandler.updateUI());
+    		}else if(component instanceof JTextField){
+    			((JTextField) component).getDocument().addDocumentListener(new DocumentListener() { //WHY SWING???
+    				
+					@Override
+					public void removeUpdate(DocumentEvent e) {
+						// TODO Auto-generated method stub
+						updateHandler.updateUI();
+					}
+					
+					@Override
+					public void insertUpdate(DocumentEvent e) {
+						// TODO Auto-generated method stub
+						updateHandler.updateUI();
+					}
+					
+					@Override
+					public void changedUpdate(DocumentEvent e) {
+						// TODO Auto-generated method stub
+						updateHandler.updateUI();
+					}
+				});
+    		}else if(component instanceof JComboBox){
+    			((JComboBox<?>) component).addActionListener((e) -> updateHandler.updateUI());
+    		}
+    		
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -171,6 +206,13 @@ class Parameter{
     	}
     }
     
+    /**
+     * Check if the value is still valid, display/hide error icon, handle bindings
+     */
+    public void updateUI(SubProgram sp){
+    	
+    }
+    
     public Class<? extends Enum<?>> getEnumClass(){
     	return enumClass;
     }
@@ -184,7 +226,7 @@ class Parameter{
      * @throws AnnotationParsingException
      */
     @SuppressWarnings("unchecked")
-	public static Parameter create(Param p, Class<?> paramType, Class<?> traceClass) throws AnnotationParsingException{
+	public static Parameter create(Param p, Class<?> paramType, Class<?> traceClass, SubProgram updateHandler) throws AnnotationParsingException{
     	Type type = Type.getType(paramType, p);
     	if(type == null){
     		throw new AnnotationParsingException("Found Parameter with invalid type: " + paramType.getName(),traceClass,p);
@@ -202,7 +244,7 @@ class Parameter{
     	Object defVal = type == Type.STRING ? p.defStr() : p.def(); 
     	
     	Parameter par = new Parameter(description, type, minVal, maxVal, defVal, enumClass, strEn);
-    	par.createControl();
+    	par.createControl(updateHandler);
     	return par;
     }
     

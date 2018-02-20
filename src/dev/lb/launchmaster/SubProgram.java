@@ -2,7 +2,10 @@ package dev.lb.launchmaster;
 
 import java.util.function.Consumer;
 import java.util.List;
+import java.util.Map;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.annotation.Annotation;
@@ -12,17 +15,23 @@ import java.lang.reflect.Modifier;
  * @author Lars Bündgen
  * @version 1.0
  */
-final class SubProgram {
+class SubProgram {
     private Consumer<Object[]> mainmethod;
     private String name;
     private String description;
     private List<Parameter> params;
+    private Map<String,Parameter> mappedParams;
     
-    private SubProgram(String name, String description, Consumer<Object[]> mainmethod, List<Parameter> params){
+    //ALWAYS CALL INIT
+    private SubProgram(){
+    }
+    
+    private void init(String name, String description, Consumer<Object[]> mainmethod, List<Parameter> params, Map<String,Parameter> mappedParams){
         this.name = name;
         this.description = description;
         this.mainmethod = mainmethod;
         this.params = params;
+        this.mappedParams = mappedParams;
     }
     
     public void startProgram(Object...args){
@@ -30,7 +39,15 @@ final class SubProgram {
     }
 
     public List<Parameter> getLaunchParameters(){
-        return params;
+        return Collections.unmodifiableList(params);
+    }
+    
+    public Map<String,Parameter> getMappedParameters(){
+    	return Collections.unmodifiableMap(mappedParams);
+    }
+    
+    public Parameter getMappedParameter(String name){
+    	return mappedParams.get(name);
     }
 
     public String getDescription(){
@@ -45,11 +62,9 @@ final class SubProgram {
         return name;
     }
     
-    public static SubProgram create(String name, String description, Consumer<Object[]> mainmethod, Parameter...params){
-        return new SubProgram(name, description, mainmethod, Arrays.asList(params));
-    }
-    public static SubProgram create(String name, String description, Consumer<Object[]> mainmethod, List<Parameter> params){
-        return new SubProgram(name, description, mainmethod, params);
+    public void updateUI(){
+    	System.out.println("Update");
+    	this.params.forEach((p) -> p.updateUI(this));
     }
     
     public static SubProgram create(Class<?> clazz) throws AnnotationParsingException{
@@ -57,6 +72,7 @@ final class SubProgram {
             throw new AnnotationParsingException("The class " + clazz.getName() + " does not implement the @Program annotation and can't be used", clazz, null);
         }else{
             Program p = clazz.getDeclaredAnnotation(Program.class);
+            SubProgram sp = new SubProgram();
             String desc = p.desc();
             String name = p.name();
             //Method
@@ -74,6 +90,7 @@ final class SubProgram {
                 throw new AnnotationParsingException("Found no static Method with the @MainMethod annotation present", clazz, null);
             }
             Annotation[][] paramAnnotations = main.getParameterAnnotations();
+            Map<String,Parameter> paramMap = new HashMap<>();
             Parameter[] paramObjects = new Parameter[main.getParameterCount()];
             Class<?>[] paramTypes = main.getParameterTypes();
             for(int i = 0; i < main.getParameterCount(); i++){
@@ -84,15 +101,19 @@ final class SubProgram {
                     if(a instanceof Param) param = (Param) a;
                 }
                 if(param == null) throw new AnnotationParsingException("Argument " + i + " is missing a @Param annotation", clazz, null);
-                paramObjects[i] = Parameter.create(param, typeClass, clazz);
+                paramObjects[i] = Parameter.create(param, typeClass, clazz,sp);
+                if(param.id() != "" && !paramMap.containsKey(param.id())){
+                	paramMap.put(param.id(), paramObjects[i]); //Put if mapped with name
+                }
             }
-            return SubProgram.create(name, desc, (a) -> {
+            sp.init(name, desc, (a) -> {
             	try {
 					main.invoke(null, a);
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					e.printStackTrace();
 				}
-			}, paramObjects);
+			}, Arrays.asList(paramObjects), paramMap);
+            return sp;
         }
     }
 }
