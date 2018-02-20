@@ -15,6 +15,6 @@ public @interface Binding {
 	}
 	
 	public enum BindingWarning{
-		HIDE,DISABLE,WARN,NULL;
+		DISABLE,WARN,NULL;
 	}
 }

@@ -134,15 +134,39 @@ class Parameter{
     public Object readValue() throws ValueOutOfRangeException{
     	switch(type){
 			case BOOLEAN: return ((JCheckBox) component).isSelected();
-			case BYTE: return (byte) ((JSpinner) component).getValue();
-			case ENUM: return ((JComboBox<?>) component).getSelectedItem();
-			case FLOAT: return (float) ((JSpinner) component).getValue();
-			case INT: return (int) ((JSpinner) component).getValue();
-			case LONG: return (long) ((JSpinner) component).getValue();
-			case SHORT: return (short) ((JSpinner) component).getValue();
-			case DOUBLE: return (double) ((JSpinner) component).getValue();
-			case STRENUM: return ((JComboBox<?>) component).getSelectedItem();
-			case STRING: return ((JTextField) component).getText();
+			case BYTE: byte retB = (byte) ((JSpinner) component).getValue();
+				if(retB < min || retB > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+						min + "<br>Maximum: " + max + "<br>Value: " + retB, desc, retB, min + "|" + max);
+				return retB;
+			case ENUM: Object retO = ((JComboBox<?>) component).getSelectedItem();
+				return retO;
+			case FLOAT: float retF = (float) ((JSpinner) component).getValue();
+				if(retF < min || retF > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retF, desc, retF, min + "|" + max);
+				return retF;
+			case INT: int retI = (int) ((JSpinner) component).getValue();
+				if(retI < min || retI > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retI, desc, retI, min + "|" + max);
+				return retI;
+			case LONG: long retL = (long) ((JSpinner) component).getValue();
+				if(retL < min || retL > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retL, desc, retL, min + "|" + max);
+				return retL;
+			case SHORT: short retS = (short) ((JSpinner) component).getValue();
+				if(retS < min || retS > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retS, desc, retS, min + "|" + max);
+				return retS;
+			case DOUBLE: double retD = (double) ((JSpinner) component).getValue();
+				if(retD < min || retD > max) throw new ValueOutOfRangeException("<html>The value for '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retD, desc, retD, min + "|" + max);
+				return retD;
+			case STRENUM: Object retSte = ((JComboBox<?>) component).getSelectedItem();
+				//Actually nothing to check, bc min and max dont apply here and the combobox is uneditable and preselected
+				return retSte;
+			case STRING: String retStr = ((JTextField) component).getText();
+				if(retStr.length() < min || retStr.length() > max) throw new ValueOutOfRangeException("<html>The length of '" + desc + "' is not in the specified range:<br>Minimum: " +
+					min + "<br>Maximum: " + max + "<br>Value: " + retStr.length(), desc, retStr.length(), min + "|" + max);
+				return retStr;
 			default: return null;
     	}
     }
