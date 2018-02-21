@@ -141,12 +141,13 @@ public class LaunchMaster
         List<JComponent> coms = new ArrayList<>();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         for(Parameter p : sp.getLaunchParameters()){
-            JComponent con = p.createComponent(new Dimension(240, 20), new Dimension(200, 20));
+            JComponent con = p.createComponent(new Dimension(240, 20), new Dimension(180, 20));
             card.add(con);
         }
         card.setMinimumSize(new Dimension(450,coms.size()*20));
         card.add(Box.createGlue());
         optPanel.add(card, sp.getName());
+        sp.updateUI(false);
         return coms;
     }
 

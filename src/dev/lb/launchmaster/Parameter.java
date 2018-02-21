@@ -107,6 +107,7 @@ class Parameter{
     	con.add(label);
     	con.add(component);
     	con.add(error);
+    	con.setMaximumSize(new Dimension(con.getMaximumSize().width, Math.max(preferredControlSize.height, preferredLabelSize.height)));
     	return con;
     }
     
