@@ -2,9 +2,12 @@ package dev.lb.launchmaster;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
+@Target(ElementType.PARAMETER)
 @Repeatable(Binds.class)
 @Retention(RUNTIME)
 public @interface Bind {

@@ -6,7 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -270,14 +269,14 @@ class Parameter{
      * @throws AnnotationParsingException
      */
     @SuppressWarnings("unchecked")
-	public static Parameter create(Param p, Class<?> paramType, Class<?> traceClass, SubProgram updateHandler) throws AnnotationParsingException{
+	public static Parameter create(Param p, Class<?> paramType, Class<?> traceClass, SubProgram updateHandler, List<Bind> bindAnnotations) throws AnnotationParsingException{
     	Type type = Type.getType(paramType, p);
     	if(type == null){
     		throw new AnnotationParsingException("Found Parameter with invalid type: " + paramType.getName(),traceClass,p);
     	}
     	Class<? extends Enum<?>> enumClass = null;
     	List<Binding> binds = new ArrayList<>();
-    	for(Bind b : p.bind()){
+    	for(Bind b : bindAnnotations){
     		if(b.bind() != BindingType.NULL)
     			binds.add(Binding.create(b));
     	}

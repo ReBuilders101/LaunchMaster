@@ -3,6 +3,7 @@ package dev.lb.launchmaster;
 import java.util.function.Consumer;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,11 +101,18 @@ class SubProgram {
                 Class<?> typeClass = paramTypes[i];
 
                 Param param = null;
+                List<Bind> binds = new ArrayList<>();
                 for(Annotation a : paramAnnotations[i]){
-                    if(a instanceof Param) param = (Param) a;
+                    if(a instanceof Param){
+                    	param = (Param) a;
+                	}else if(a instanceof Bind){
+                    	binds.add((Bind) a);
+                    }else if(a instanceof Binds){
+                    	binds.addAll(Arrays.asList(((Binds) a).value()));
+                    }
                 }
                 if(param == null) throw new AnnotationParsingException("Argument " + i + " is missing a @Param annotation", clazz, null);
-                paramObjects[i] = Parameter.create(param, typeClass, clazz,sp);
+                paramObjects[i] = Parameter.create(param, typeClass, clazz,sp,binds);
                 if(param.id() != "" && !paramMap.containsKey(param.id())){
                 	paramMap.put(param.id(), paramObjects[i]); //Put if mapped with name
                 }
