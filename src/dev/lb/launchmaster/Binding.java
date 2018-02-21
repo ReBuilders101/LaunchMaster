@@ -17,11 +17,12 @@ class Binding {
 	private BindingWarning warning;
 	private boolean warn;
 	
-	private Binding(String dep, BindingType type, BindingWarning warning, boolean warn) {
+	private Binding(String dep, BindingType type, BindingWarning warning, boolean warn, double val) {
 		this.dep = dep;
 		this.type = type;
 		this.warning = warning;
 		this.warn = warn;
+		this.val = val;
 	}
 	
 	public boolean validate(JComponent main, JComponent dependant){
@@ -31,6 +32,7 @@ class Binding {
 			return validate(((JCheckBox) dependant).isSelected());
 		}else if(dependant instanceof JComboBox<?>){
 			int index = ((JComboBox<?>) dependant).getSelectedIndex();
+			//System.out.println(index + "|" + val);
 			switch(type){
 			case IS: return index == (int) val;
 			case ISNOT: return index != (int) val;
@@ -74,7 +76,7 @@ class Binding {
 	
 	
 	public static Binding create(Bind b){
-		return new Binding(b.to(), b.bind(), b.warn(), b.block());
+		return new Binding(b.to(), b.bind(), b.warn(), b.block(), b.value());
 	}
 
 	public String getDependantName() {

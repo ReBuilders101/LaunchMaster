@@ -225,6 +225,7 @@ class Parameter{
      */
     public boolean updateUI(SubProgram sp, boolean message){
     	boolean valid = true;
+    	boolean removeWarn = true;
     	for(Binding b : bindings){
     		JComponent dependant = sp.getMappedParameter(b.getDependantName()).component;
     		if(dependant == null) continue;
@@ -241,7 +242,11 @@ class Parameter{
     				((JLabel) error).setIcon(new ImageIcon(errorImage.getScaledInstance(error.getPreferredSize().width, error.getPreferredSize().height, Image.SCALE_SMOOTH)));
     			}
     			valid = !b.getWarnOnLaunch(); //Only cancel launch if this is true
-    		}else{//Remove warnings
+    			removeWarn = false;
+    		}
+    	}
+    	if(removeWarn){//Iterate again to remove warnings
+    		for(Binding b: bindings){
     			if(b.getWarning() == BindingWarning.DISABLE){
     				component.setEnabled(true);    				
     			}else if(b.getWarning() == BindingWarning.WARN){
