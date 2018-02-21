@@ -15,14 +15,16 @@ class Binding {
 	private double val;
 	private BindingType type;
 	private BindingWarning warning;
+	private boolean warn;
 	
-	private Binding(String dep, BindingType type, BindingWarning warning) {
+	private Binding(String dep, BindingType type, BindingWarning warning, boolean warn) {
 		this.dep = dep;
 		this.type = type;
 		this.warning = warning;
+		this.warn = warn;
 	}
 	
-	public boolean validate(JComponent main, JComponent dependant) throws ValueOutOfRangeException{
+	public boolean validate(JComponent main, JComponent dependant){
 		if(hasNum(main) && hasNum(dependant)){
 			return validate(readNum(main), readNum(dependant));
 		}else if(dependant instanceof JCheckBox){ //If dependant is a checkbox, only look for t/f
@@ -43,7 +45,7 @@ class Binding {
 	}
 	
 	private double readNum(JComponent comp){
-		if(comp instanceof JSpinner) return (double) ((JSpinner) comp).getValue();
+		if(comp instanceof JSpinner) return ((Number) ((JSpinner) comp).getValue()).doubleValue();
 		if(comp instanceof JTextField) return (double) ((JTextField) comp).getText().length();
 		return 0;
 	}
@@ -71,8 +73,8 @@ class Binding {
 	}
 	
 	
-	public Binding create(Bind b){
-		return new Binding(b.to(), b.bind(), b.warn());
+	public static Binding create(Bind b){
+		return new Binding(b.to(), b.bind(), b.warn(), b.block());
 	}
 
 	public String getDependantName() {
@@ -81,6 +83,10 @@ class Binding {
 
 	public double getCompareValue() {
 		return val;
+	}
+	
+	public boolean getWarnOnLaunch(){
+		return warn;
 	}
 
 	public BindingType getBindingType() {

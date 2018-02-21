@@ -12,9 +12,18 @@ public @interface Bind {
 	BindingType bind();
 	BindingWarning warn();
 	double value() default 0;
+	boolean block() default true;
 	
 	public enum BindingType{
-		MORE,LESS,MOREEQ,LESSEQ,TRUE,FALSE,NULL,ISNOT,IS;
+		MORE("more tha"),LESS("less than"),MOREEQ("more than or equal to"),LESSEQ("less than or equal to"),
+		TRUE("true"),FALSE("false"),NULL("NULL"),ISNOT("not the same as"),IS("the same value as");
+		private String name;
+		private BindingType(String name){
+			this.name= name;
+		}
+		public String toString(){
+			return name;
+		}
 	}
 	
 	public enum BindingWarning{

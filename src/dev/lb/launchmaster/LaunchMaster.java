@@ -53,7 +53,7 @@ public class LaunchMaster
         list = Utils.setSize(new JList<SubProgram>(new DefaultListModel<SubProgram>()), 210, 420);
         list.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Color.GRAY), new EmptyBorder(5,5,5,5)));
         list.setMinimumSize(new Dimension(50,50));
-        JButton start = Utils.setSize(new JButton("Starten"), 210, 30);
+        JButton start = Utils.setSize(new JButton("Launch"), 210, 30);
         //Col2
         JLabel prgDesc = Utils.setSize(new JLabel("Program description"), 250, 15);
         desc = Utils.setSize(new JLabel(widthTag + "No program selected"), 250, 420);
@@ -79,6 +79,9 @@ public class LaunchMaster
                 if(current == null){
                     JOptionPane.showMessageDialog(frame, "You have to select a program", "Launch", JOptionPane.INFORMATION_MESSAGE);
                     return;
+                }
+                if(!current.updateUI(true)){
+                	return;
                 }
                 Object[] args;
 				try {

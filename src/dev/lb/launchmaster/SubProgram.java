@@ -62,9 +62,12 @@ class SubProgram {
         return name;
     }
     
-    public void updateUI(){
-    	System.out.println("Update");
-    	this.params.forEach((p) -> p.updateUI(this));
+    public boolean updateUI(boolean message){
+    	//System.out.println("Update");
+    	for(Parameter p : this.params){
+    		if(!p.updateUI(this, message)) return false;
+    	}
+    	return true;
     }
     
     public static SubProgram create(Class<?> clazz) throws AnnotationParsingException{

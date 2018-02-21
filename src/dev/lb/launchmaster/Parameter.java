@@ -3,20 +3,31 @@ package dev.lb.launchmaster;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultFormatter;
+
+import dev.lb.launchmaster.Bind.BindingType;
+import dev.lb.launchmaster.Bind.BindingWarning;
 
 /**
  * 
@@ -44,11 +55,12 @@ class Parameter{
     private double max;
     private Object def;
     private Class<? extends Enum<?>> enumClass;
+    private List<Binding> bindings;
     private String[] strEnumVals;
     private JComponent component;
     private JComponent error; //For the error symbol
 
-    protected Parameter(String desc, Type type, double min, double max, Object def, Class<? extends Enum<?>> enc, String[] en){
+    protected Parameter(String desc, Type type, double min, double max, Object def, Class<? extends Enum<?>> enc, String[] en, List<Binding> bindings){
         this.type = type;
         this.desc = desc;
         this.min = min;
@@ -56,6 +68,7 @@ class Parameter{
         this.def = def;
         this.enumClass = enc;
         this.strEnumVals = en;
+        this.bindings = bindings;
     }
 
     public Type getParamType(){
@@ -76,6 +89,10 @@ class Parameter{
     
     public Object getDefaultValue(){
         return def;
+    }
+    
+    public List<Binding> getBindings(){
+    	return Collections.unmodifiableList(bindings);
     }
     
     public JComponent createComponent(Dimension preferredLabelSize, Dimension preferredControlSize){
@@ -129,34 +146,31 @@ class Parameter{
     				break;
     		}
     		if(component instanceof JCheckBox){
-    			((JCheckBox) component).addActionListener((e) -> updateHandler.updateUI());
+    			((JCheckBox) component).addActionListener((e) -> updateHandler.updateUI(false));
     		}else if(component instanceof JSpinner){
     			((DefaultFormatter) ((JFormattedTextField) ((JSpinner) component).getEditor()
     				.getComponent(0)).getFormatter()).setCommitsOnValidEdit(true); //Thats a lot of casts
-				((JSpinner) component).addChangeListener((e) -> updateHandler.updateUI());
+				((JSpinner) component).addChangeListener((e) -> updateHandler.updateUI(false));
     		}else if(component instanceof JTextField){
     			((JTextField) component).getDocument().addDocumentListener(new DocumentListener() { //WHY SWING???
     				
 					@Override
 					public void removeUpdate(DocumentEvent e) {
-						// TODO Auto-generated method stub
-						updateHandler.updateUI();
+						updateHandler.updateUI(false);
 					}
 					
 					@Override
 					public void insertUpdate(DocumentEvent e) {
-						// TODO Auto-generated method stub
-						updateHandler.updateUI();
+						updateHandler.updateUI(false);
 					}
 					
 					@Override
 					public void changedUpdate(DocumentEvent e) {
-						// TODO Auto-generated method stub
-						updateHandler.updateUI();
+						updateHandler.updateUI(false);
 					}
 				});
     		}else if(component instanceof JComboBox){
-    			((JComboBox<?>) component).addActionListener((e) -> updateHandler.updateUI());
+    			((JComboBox<?>) component).addActionListener((e) -> updateHandler.updateUI(false));
     		}
     		
     	}catch(Exception e){
@@ -165,7 +179,6 @@ class Parameter{
     	error = new JLabel();
     }
     
-    //TODO Add checks
     public Object readValue() throws ValueOutOfRangeException{
     	switch(type){
 			case BOOLEAN: return ((JCheckBox) component).isSelected();
@@ -209,8 +222,33 @@ class Parameter{
     /**
      * Check if the value is still valid, display/hide error icon, handle bindings
      */
-    public void updateUI(SubProgram sp){
-    	
+    public boolean updateUI(SubProgram sp, boolean message){
+    	boolean valid = true;
+    	for(Binding b : bindings){
+    		JComponent dependant = sp.getMappedParameter(b.getDependantName()).component;
+    		if(dependant == null) continue;
+    		if(!b.validate(component, dependant)){
+    			if(message && b.getWarnOnLaunch()){
+    				JOptionPane.showMessageDialog(SwingUtilities.getRoot(component), "<html>The following condition is not fulfilled: <br>" + 
+    					"The value of '" + this.desc +"' has to be " + b.getBindingType() + " the value of '" + sp.getMappedParameter(b.getDependantName()).desc +
+    					"'.",
+    				"Launch", JOptionPane.ERROR_MESSAGE);
+    			}
+    			if(b.getWarning() == BindingWarning.DISABLE){
+    				component.setEnabled(false);
+    			}else if(b.getWarning() == BindingWarning.WARN){
+    				((JLabel) error).setIcon(new ImageIcon(errorImage.getScaledInstance(error.getPreferredSize().width, error.getPreferredSize().height, Image.SCALE_SMOOTH)));
+    			}
+    			valid = !b.getWarnOnLaunch(); //Only cancel launch if this is true
+    		}else{//Remove warnings
+    			if(b.getWarning() == BindingWarning.DISABLE){
+    				component.setEnabled(true);    				
+    			}else if(b.getWarning() == BindingWarning.WARN){
+    				((JLabel) error).setIcon(null);
+    			}
+    		}
+    	}
+    	return valid;
     }
     
     public Class<? extends Enum<?>> getEnumClass(){
@@ -232,6 +270,11 @@ class Parameter{
     		throw new AnnotationParsingException("Found Parameter with invalid type: " + paramType.getName(),traceClass,p);
     	}
     	Class<? extends Enum<?>> enumClass = null;
+    	List<Binding> binds = new ArrayList<>();
+    	for(Bind b : p.bind()){
+    		if(b.bind() != BindingType.NULL)
+    			binds.add(Binding.create(b));
+    	}
     	String[] strEn = null;
     	if(type == Type.ENUM){
     		enumClass = (Class<? extends Enum<?>>) paramType;
@@ -243,7 +286,7 @@ class Parameter{
     	double maxVal = p.max();
     	Object defVal = type == Type.STRING ? p.defStr() : p.def(); 
     	
-    	Parameter par = new Parameter(description, type, minVal, maxVal, defVal, enumClass, strEn);
+    	Parameter par = new Parameter(description, type, minVal, maxVal, defVal, enumClass, strEn, binds);
     	par.createControl(updateHandler);
     	return par;
     }
