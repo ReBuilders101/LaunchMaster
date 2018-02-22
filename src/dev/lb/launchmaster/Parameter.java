@@ -119,7 +119,7 @@ class Parameter{
     				Double.isNaN(max) ? Byte.MAX_VALUE : (byte) max, 1));
     				break;
     			case DOUBLE: component = new JSpinner(new SpinnerNumberModel((double) def, Double.isNaN(min) ?	Double.MIN_VALUE : (double) min,
-    				Double.isNaN(max) ? Double.MAX_VALUE : (double) max, 1));
+    				Double.isNaN(max) ? Double.MAX_VALUE : (double) max, 0.1));
     				break;
     			case ENUM: Enum<?>[] constants = enumClass.getEnumConstants();
     					component = new JComboBox<>(constants);
@@ -129,7 +129,7 @@ class Parameter{
 					((JComboBox<?>) component).setSelectedIndex((int) (double) def);
 					break;
     			case FLOAT: component = new JSpinner(new SpinnerNumberModel((float) (double) def, Double.isNaN(min) ? Float.MIN_VALUE : (float) min,
-    				Double.isNaN(max) ? Float.MAX_VALUE : (float) max, 1));
+    				Double.isNaN(max) ? Float.MAX_VALUE : (float) max, 0.1));
     				break;
     			case INT: component = new JSpinner(new SpinnerNumberModel((int) (double) def, Double.isNaN(min) ? Integer.MIN_VALUE : (int) min,
     				Double.isNaN(max) ? Integer.MAX_VALUE : (int) max, 1));
