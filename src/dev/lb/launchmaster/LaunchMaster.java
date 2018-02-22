@@ -1,6 +1,7 @@
 package dev.lb.launchmaster;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.HashMap;
 import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
@@ -11,6 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.BoxLayout;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
@@ -29,7 +33,7 @@ import java.util.ArrayList;
  * @author Lars Bündgen
  * @version 2.6
  */
-public class LaunchMaster
+public class LaunchMaster extends WindowAdapter
 {
     private JFrame frame;
     private JList<SubProgram> list;
@@ -38,6 +42,7 @@ public class LaunchMaster
     private JPanel optPanel;
     private CardLayout cards;
     private static final String widthTag = "<html><body style='width: 200px'>";
+    private Consumer<WindowEvent> onclose = (e) -> System.exit(0);
 
     private LaunchMaster(String titel){
         programme = new HashMap<>();
@@ -101,7 +106,7 @@ public class LaunchMaster
             });
         list.addListSelectionListener((l) -> updateUI());
         reset.addActionListener((k) -> restoreDefaults(list.getSelectedValue()));
-        
+        frame.addWindowListener(this);
         
         frame.add(cp);
         frame.pack();
@@ -210,4 +215,13 @@ public class LaunchMaster
         }
         return lm;
     }
+
+    public void setCloseHandler(Consumer<WindowEvent> e){
+    	onclose = e;
+    }
+    
+	@Override
+	public void windowClosed(WindowEvent e) {
+		onclose.accept(e);
+	}
 }
