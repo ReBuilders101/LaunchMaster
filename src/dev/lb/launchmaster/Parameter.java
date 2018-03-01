@@ -114,6 +114,7 @@ class Parameter{
     	try{
     		switch (getParamType()) {
     			case BOOLEAN: component = new JCheckBox("Add this paramter");
+    				((JCheckBox) component).setSelected((int) (double) def == 1);
     				break;
     			case BYTE: component = new JSpinner(new SpinnerNumberModel((byte) (double) def, Double.isNaN(min) ? Byte.MIN_VALUE : (byte) min,
     				Double.isNaN(max) ? Byte.MAX_VALUE : (byte) max, 1));
